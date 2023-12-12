@@ -1,0 +1,25 @@
+{
+  "main": "index.html",
+  "logo": "logo.jpg",
+  "platform": ["win32", "darwin", "linux"],
+  "development": {
+    "main": "http://127.0.0.1:3000"
+  },
+  "preload": "preload.js",
+  "features": [
+    {
+      "code": "wkt",
+      "explain": "一个方便空间展示的插件",
+      "cmds":["wkt展示"]
+    },
+    {
+      "code": "add",
+      "explain": "添加wkt",
+      "cmds": [
+        {
+          "label": "add"
+        }
+      ]
+    }
+  ]
+}
