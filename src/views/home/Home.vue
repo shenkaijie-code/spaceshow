@@ -16,39 +16,39 @@
       <div id='wkt'></div>
     </el-text>
     <div class="button">
-      <el-form :model="ruleForm" status-icon ref="formRef" label-width="120px">
-        <el-row :gutter="20">
-          <el-col :span="4">
-            <el-form-item>
-              <el-button type="primary" @click="addFruitConfig">新增行</el-button>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row :gutter="20" v-for="(item, index) in ruleForm.fruitConfig">
-          <el-col :span="10">
-            <el-form-item label="水果名称" prop="'fruit' + index">
-              <el-input type="text" v-model="item.fruit" autocomplete="off" maxlength="50">
-              </el-input>
-            </el-form-item>
-          </el-col>
-          <el-col :span="10">
-            <el-form-item label="水果售价" prop="'price' + index">
-              <el-input type="text" v-model="item.price" autocomplete="off" maxlength="50">
-              </el-input>
-            </el-form-item>
-          </el-col>
-          <el-col :span="4">
-            <el-button @click.prevent="removeFruitConfig(item)">删除行</el-button>
-          </el-col>
-        </el-row>
-        <el-row :gutter="20">
-          <el-col :span="4">
-            <el-form-item>
-              <el-button type="primary" @click="submitForm">确 定</el-button>
-            </el-form-item>
-          </el-col>
-        </el-row>
-      </el-form>
+<!--      <el-form :model="ruleForm" status-icon ref="formRef" label-width="120px">-->
+<!--        <el-row :gutter="20">-->
+<!--          <el-col :span="4">-->
+<!--            <el-form-item>-->
+<!--              <el-button type="primary" @click="addFruitConfig">新增行</el-button>-->
+<!--            </el-form-item>-->
+<!--          </el-col>-->
+<!--        </el-row>-->
+<!--        <el-row :gutter="20" v-for="(item, index) in ruleForm.fruitConfig">-->
+<!--          <el-col :span="10">-->
+<!--            <el-form-item label="水果名称" prop="'fruit' + index">-->
+<!--              <el-input type="text" v-model="item.fruit" autocomplete="off" maxlength="50">-->
+<!--              </el-input>-->
+<!--            </el-form-item>-->
+<!--          </el-col>-->
+<!--          <el-col :span="10">-->
+<!--            <el-form-item label="水果售价" prop="'price' + index">-->
+<!--              <el-input type="text" v-model="item.price" autocomplete="off" maxlength="50">-->
+<!--              </el-input>-->
+<!--            </el-form-item>-->
+<!--          </el-col>-->
+<!--          <el-col :span="4">-->
+<!--            <el-button @click.prevent="removeFruitConfig(item)">删除行</el-button>-->
+<!--          </el-col>-->
+<!--        </el-row>-->
+<!--        <el-row :gutter="20">-->
+<!--          <el-col :span="4">-->
+<!--            <el-form-item>-->
+<!--              <el-button type="primary" @click="submitForm">确 定</el-button>-->
+<!--            </el-form-item>-->
+<!--          </el-col>-->
+<!--        </el-row>-->
+<!--      </el-form>-->
     </div>
   </div>
 </template>
@@ -63,17 +63,18 @@ import VectorSource from "ol/source/Vector"; // 地图样式
 import VectorLayer from "ol/layer/Vector";
 import {GeoJSON, WKT} from "ol/format";
 import {XYZ} from "ol/source";
-import sichuan from "../data/geojson.json";
-import sichuan1 from "../data/geojson1.json";
+import sichuan from "../../data/geojson.json";
+import sichuan1 from "../../data/geojson1.json";
 import {Draw} from "ol/interaction";
 import * as control from "ol/control";
 import * as coordinate from "ol/coordinate";
 import {ScaleLine} from "ol/control";
 
 export default {
-  name: 'HelloWorld',
+  name: 'Home',
   setup() {
 
+/*
 
     import {
       reactive,
@@ -102,6 +103,7 @@ export default {
     } = {
       ...toRefs(state)
     };
+*/
 
 
 
@@ -240,24 +242,24 @@ export default {
     }
   },
   methods: {
-    submitForm(){ // 点击确定按钮，输出行内数据
-      var fruitConfig = state.ruleForm.fruitConfig;
-      console.log(fruitConfig);
-      console.log("水果名称：" + fruitConfig[0].fruit);
-      console.log("水果售价：" + fruitConfig[0].price);
-    },
-     removeFruitConfig (item) { // 删除水果、售价行
-      const index = state.ruleForm.fruitConfig.indexOf(item)
-      if (index !== -1) {
-        state.ruleForm.fruitConfig.splice(index, 1)
-      }
-    },
-    addFruitConfig() { // 新增水果、售价行
-      state.ruleForm.fruitConfig.push({
-        fruit: '',
-        price: ''
-      })
-    },
+    // submitForm(){ // 点击确定按钮，输出行内数据
+    //   var fruitConfig = state.ruleForm.fruitConfig;
+    //   console.log(fruitConfig);
+    //   console.log("水果名称：" + fruitConfig[0].fruit);
+    //   console.log("水果售价：" + fruitConfig[0].price);
+    // },
+    //  removeFruitConfig (item) { // 删除水果、售价行
+    //   const index = state.ruleForm.fruitConfig.indexOf(item)
+    //   if (index !== -1) {
+    //     state.ruleForm.fruitConfig.splice(index, 1)
+    //   }
+    // },
+    // addFruitConfig() { // 新增水果、售价行
+    //   state.ruleForm.fruitConfig.push({
+    //     fruit: '',
+    //     price: ''
+    //   })
+    // },
 
     addInteraction(type) {
       // 添加交互绘制控件
