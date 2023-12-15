@@ -12,6 +12,7 @@
             <button @click="drawLine">画线</button>
             <button @click="drawPolygon">画面</button>
             <button @click="drawCircle">画圆</button>
+            <button @click="removeLastPoint">撤回</button>
             <button @click="clearDraw">清空</button>
             <button @click="exitDraw">退出</button>
           </div>
@@ -83,9 +84,6 @@ import * as control from "ol/control";
 import * as coordinate from "ol/coordinate";
 import {ScaleLine} from "ol/control";
 
-// export default {
-//   name: 'Home',
-//   setup() {
 /*import {reactive, toRefs, ref} from 'vue';
 // 参数声明
 const formRef = ref(null);
@@ -130,7 +128,6 @@ addWkt();
 // addGeo();
 
 
-// ctx.methods.方法名()
 // features.push(getFeatureByWKT(wkt))
 function addGeo() {
   for (let i = 0; i < geofiles.length; i++) {
@@ -152,7 +149,7 @@ let source = new VectorSource()
 let layers = [
   //图层
   new Tile({   // 使用瓦片渲染方法
-               // 空白底图,生产环境不可使用
+    // 空白底图,生产环境不可使用
     source: new OSM(),
   }),
   new Tile({
@@ -205,18 +202,6 @@ onMounted(() => {
 
 //保存这个控件状态,保证不会改变成别的对象
 let draw = ref(null)
-// return {
-//   draw,
-//   enableFreeHand: true, //是否允许手绘,
-//   map, wkts, geofiles, features,
-//   source,
-//   vectorLayer: new VectorLayer({
-//     source: source
-//   })
-// }
-// }
-// ,
-// methods: {
 
 
 // function submitForm() { // 点击确定按钮，输出行内数据
@@ -267,7 +252,7 @@ function addInteraction(type) {
   })
 }
 
-function drawPoint() {
+const drawPoint = () => {
   //退出其他绘制
   exitDraw();
   // 绘制点
@@ -342,18 +327,5 @@ function removeLastPoint() {
   border: 1px solid #eee;
   float: left;
 }
-
-.button {
-  float: left;
-}
-
-.btns {
-//position: fixed; //top: 90px; //left: 650px;
-}
-
-.wkts {
-//position: fixed; top: 80px; left: 20px; width: 300px; //height: 200px; float: left;
-}
-
 
 </style>
