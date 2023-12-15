@@ -10,7 +10,7 @@
         <Home/>
       </el-main>
       <!--      底部-->
-      <el-footer>版权所有</el-footer>
+      <el-footer></el-footer>
     </el-container>
   </el-container>
 </template>
@@ -31,8 +31,8 @@ export default {
 <style scoped>
 html, body, #app {
   height: 100%;
-  margin: 0px;
-  padding: 0px;
+  margin: 0;
+  padding: 0;
 }
 
 .el-container {
@@ -51,14 +51,14 @@ html, body, #app {
   background-color: #d3dce6;
   color: #333;
   text-align: center;
-  line-height: 200px;
+  line-height: 100px;
 }
 
 .el-main {
   background-color: #e9eef3;
   color: #333;
   text-align: center;
-  line-height: 160px;
+  line-height: 20px;
 }
 
 .el-menu {
