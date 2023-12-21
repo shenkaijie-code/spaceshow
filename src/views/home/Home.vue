@@ -61,6 +61,9 @@
                   <el-button type="primary" @click="submitForm">确 定</el-button>
                 </el-form-item>
               </el-col>
+              <el-col :span="10">
+                <el-button :style="{ display: hid}" type="primary" @click="clearLayer">清空</el-button>
+              </el-col>
             </el-row>
           </el-form>
         </el-row>
@@ -93,38 +96,72 @@ const state = reactive({
     }]
   },
 })
+
+let features = [];
+let wkts = []
+let layer
 const addFruitConfig = () => { // 新增水果、售价行
   state.ruleForm.fruitConfig.push({
     linename: '',
     coordinate: ''
   })
+  hid.value = '';
 }
+
+let hid = ref()
 const removeFruitConfig = (item) => { // 删除水果、售价行
-  const index = state.ruleForm.fruitConfig.indexOf(item)
+  let message = state.ruleForm.fruitConfig;
+  const index = message.indexOf(item)
   if (index !== -1) {
-    state.ruleForm.fruitConfig.splice(index, 1)
+    // console.log(message)
+    // console.log(message[index].linename)
+    // wkts = wkts.filter(x => x.linename !== message[index].linename)
+    let f = layer.getSource().getFeatureById(message[index].linename)
+    layer.getSource().removeFeature(f)
+    // 删除这个值
+    message.splice(index, 1)
+
+    if (message.length === 0) {
+      hid.value = 'none';
+      console.log(hid)
+    }
+    // map.removeLayer(layer)
   }
 }
 
-let features = [];
-const wkts = []
+
+const clearLayer = () => { // 删除水果、售价行
+  map.removeLayer(layer)
+}
+
 
 const submitForm = () => { // 点击确定按钮，输出行内数据
   let fruitConfig = state.ruleForm.fruitConfig;
   // console.log(fruitConfig);
-  // console.log("水果名称：" + fruitConfig[0].linename);
-  // console.log("水果售价：" + fruitConfig[0].coordinate);
+  // console.log("线名：" + fruitConfig[0].linename);
+  // console.log("wkt坐标：" + fruitConfig[0].coordinate);
+  var featus = [];
+  let i = 0
   for (const x of fruitConfig) {
     // console.log(x.coordinate.toString()+"---"+JSON.stringify(x.coordinate));
-    wkts.push({'linename': x.linename, 'coordinate': x.coordinate});
+    // wkts.push({'linename': x.linename, 'coordinate': x.coordinate});
+    let readFeature = new WKT().readFeature(x.coordinate);
+    if (x.linename) {
+      readFeature.setId(x.linename);
+    } else {
+      readFeature.setId('w' + i);
+      i++
+    }
+    featus.push(readFeature)
   }
-  addWkt();
-  let vectorLayer = new VectorLayer({
+
+  // addWkt();
+  layer = new VectorLayer({
     source: new VectorSource({
-      features: features
+      features: featus
     })
   });
-  map.addLayer(vectorLayer)
+  map.addLayer(layer)
 
 }
 
@@ -140,11 +177,6 @@ const {
 
 // 一个是属性,另一个是context上下文对象,包括(emit事件函数,slots插槽,attrs值对象)
 let map = ref(null) // 存放地图实例
-
-// const feature = new WKT().readFeature(wkt, {
-//   dataProjection: 'EPSG:4326',
-//   featureProjection: 'EPSG:4326'
-// });
 
 
 let geofiles = []
