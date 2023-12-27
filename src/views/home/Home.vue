@@ -5,7 +5,7 @@
       <el-col :span="15">
         <div id="map" ref="map" class="map__x"></div>
       </el-col>
-      <el-col :span="9">
+      <el-col :span="9" class="attribute">
         <el-row>
           <div>
             <button @click="drawPoint">画点</button>
@@ -41,14 +41,15 @@
             <el-row :gutter="24" v-for="(item, index) in ruleForm.fruitConfig">
               <el-col :span="6">
                 <el-form-item label="线(id)" prop="'linename' + index">
-                  <el-input type="text" v-model="item.linename" autocomplete="off" maxlength="50">
+                  <el-input type="text" v-model="item.linename" autocomplete="off" maxlength="2">
                   </el-input>
                 </el-form-item>
               </el-col>
               <el-col :span="14">
-                <el-form-item label="wkt" prop="'coordinate' + index">
-                  <el-input type="text" v-model="item.coordinate" autocomplete="off" maxlength="550">
+                <el-form-item label="wkt" prop="'coordinate' + index" :error="errMsg">
+                  <el-input type="text" v-model="item.coordinate" autocomplete="off" minlength="5" @blur="checkWkt">
                   </el-input>
+<!--                  <label style="color: red">{{ errMsg }}</label>-->
                 </el-form-item>
               </el-col>
               <el-col :span="2">
@@ -58,7 +59,7 @@
             <el-row :gutter="20">
               <el-col :span="4">
                 <el-form-item>
-                  <el-button type="primary" @click="submitForm">确 定</el-button>
+                  <el-button :disabled="subHid" type="primary" @click="submitForm">确 定</el-button>
                 </el-form-item>
               </el-col>
               <el-col :span="10">
@@ -99,41 +100,79 @@ const state = reactive({
 
 let features = [];
 let wkts = []
-let layer
-const addFruitConfig = () => { // 新增水果、售价行
+let layer = reactive(null)
+const addFruitConfig = () => { // 新增
   state.ruleForm.fruitConfig.push({
     linename: '',
     coordinate: ''
   })
+  subHid.value = true
   hid.value = '';
 }
 
 let hid = ref()
-const removeFruitConfig = (item) => { // 删除水果、售价行
+let subHid = ref(true)
+const removeFruitConfig = (item) => {
   let message = state.ruleForm.fruitConfig;
   const index = message.indexOf(item)
   if (index !== -1) {
+
     // console.log(message)
-    // console.log(message[index].linename)
+    console.log(message[index].linename);
     // wkts = wkts.filter(x => x.linename !== message[index].linename)
-    let f = layer.getSource().getFeatureById(message[index].linename)
-    layer.getSource().removeFeature(f)
+    let id = message[index].linename;
+
+    if (layer) {
+      if (id) {
+        // 有值时删除
+        let f = layer.getSource().getFeatureById(id);
+        layer.getSource().removeFeature(f);
+      } else {
+        // 如果没有id,按下标删除
+        let newVar = layer.getSource().getFeatures();
+        // console.log(JSON.stringify(newVar[index] )+"--------"+index)
+        layer.getSource().removeFeature(newVar[index])
+      }
+    }
     // 删除这个值
-    message.splice(index, 1)
+    message.splice(index, 1);
 
     if (message.length === 0) {
       hid.value = 'none';
-      console.log(hid)
+      // console.log(hid)
     }
     // map.removeLayer(layer)
   }
 }
 
 
-const clearLayer = () => { // 删除水果、售价行
-  map.removeLayer(layer)
+const clearLayer = () => { // 删除
+  let features1 = layer.getSource().getFeatures();
+  for (const feature of features1) {
+    // layer.getSource().removeFeature(feature)
+    layer.getSource().clear()
+  }
+  // console.log(features1.length)
+  // map.removeLayer(layer)
+
 }
 
+let errMsg = ref('')
+const checkWkt = (event) => {
+  errMsg.value = ''
+  let value = event.target.value;
+  console.log(value)
+  try {
+    new WKT().readFeature(value)
+    // 校验通过后可以提交
+    subHid.value = false
+  } catch (e) {
+    errMsg.value = '请输入正确的wkt格式';
+    // console.log(errMsg.value+'-===')
+  }
+
+
+}
 
 const submitForm = () => { // 点击确定按钮，输出行内数据
   let fruitConfig = state.ruleForm.fruitConfig;
@@ -155,6 +194,7 @@ const submitForm = () => { // 点击确定按钮，输出行内数据
     featus.push(readFeature)
   }
 
+  map.removeLayer(layer)
   // addWkt();
   layer = new VectorLayer({
     source: new VectorSource({
@@ -373,7 +413,7 @@ function removeLastPoint() {
   width: 410px;
   height: 530px;
   border: 1px solid #eee;
-  float: left;
+//float: left;
 }
 
 </style>

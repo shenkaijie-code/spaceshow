@@ -4,7 +4,7 @@
 <!--    <el-aside style="width:180px;"></el-aside>-->
     <el-container>
       <!--      顶-->
-      <el-header>空间展示系统</el-header>
+      <el-header>空间展示</el-header>
       <!--  内容区域-->
       <el-main>
         <Home/>
