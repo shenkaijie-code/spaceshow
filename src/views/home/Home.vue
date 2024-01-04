@@ -1,3 +1,81 @@
+
+<template>
+  <div class="home">
+    <el-row>
+      <el-col :span="15">
+        <!--        <div id="map" ref="map" ></div>-->
+        <div id="map" class="map__x"></div>
+      </el-col>
+      <el-col :span="9" class="attribute">
+        <el-row>
+          <div>
+            <button @click="drawPoint">画点</button>
+            <button @click="drawLine">画线</button>
+            <button @click="drawPolygon">画面</button>
+            <button @click="drawCircle">画圆</button>
+            <button @click="removeLastPoint">撤回</button>
+            <button @click="clearDraw">清空</button>
+            <button @click="exitDraw">退出</button>
+            <!--            <button @click="tes">测试</button>-->
+          </div>
+        </el-row>
+        <el-row type="flex" justify="center">
+          <!--          <el-col :span="2">坐标</el-col>-->
+          <el-col :span="24">
+            <el-text class="mx-1" type="danger">
+              坐标:
+              <div id='points'></div>
+              wkt:
+              <div id='wkt'></div>
+            </el-text>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-form :model="ruleForm" status-icon ref="formRef" label-width="50px">
+            <el-row :gutter="24">
+              <el-col :span="2">
+                <el-form-item>
+                  <el-button type="primary" @click="addFruitConfig">新增行</el-button>
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row :gutter="24" v-for="(item, index) in ruleForm.fruitConfig" :key="index">
+              <el-col :span="6">
+                <el-form-item label="线(id)" prop="'linename' + index">
+                  <el-input type="text" v-model="item.linename" autocomplete="off" maxlength="2">
+                  </el-input>
+                </el-form-item>
+              </el-col>
+              <el-col :span="10">
+                <el-form-item label="wkt" prop="'coordinate' + index" :error="errMsg">
+                  <el-input type="text" v-model="item.coordinate" autocomplete="off" minlength="5" @blur="checkWkt">
+                  </el-input>
+                  <!--                  <label style="color: red">{{ errMsg }}</label>-->
+                </el-form-item>
+              </el-col>
+              <el-col :span="4">
+                <el-button @click.prevent="removeFruitConfig(item)">删除行</el-button>
+              </el-col>
+              <el-col :span="4">
+                <el-button @click.prevent="to57(item)">转墨卡托</el-button>
+              </el-col>
+            </el-row>
+            <el-row :gutter="20">
+              <el-col :span="4">
+                <el-form-item>
+                  <el-button :disabled="subHid" type="primary" @click="submitForm">确 定</el-button>
+                </el-form-item>
+              </el-col>
+              <el-col :span="10">
+                <el-button :style="{ display: hid}" type="primary" @click="clearLayer">清空</el-button>
+              </el-col>
+            </el-row>
+          </el-form>
+        </el-row>
+      </el-col>
+    </el-row>
+  </div>
+</template>
 <script setup>
 import {onMounted, reactive, ref, toRefs} from 'vue' // vue相关方法
 import {Map, View} from 'ol' // 地图实例方法、视图方法
@@ -41,12 +119,8 @@ const removeFruitConfig = (item) => {
   let message = state.ruleForm.fruitConfig;
   const index = message.indexOf(item)
   if (index !== -1) {
-
-    // console.log(message)
-    console.log(message[index].linename);
     // wkts = wkts.filter(x => x.linename !== message[index].linename)
     let id = message[index].linename;
-
     if (layer) {
       if (id) {
         // 有值时删除
@@ -64,9 +138,24 @@ const removeFruitConfig = (item) => {
 
     if (message.length === 0) {
       hid.value = 'none';
-      // console.log(hid)
     }
-    // map.removeLayer(layer)
+  }
+}
+
+const to57 = (item) => {
+  let message = state.ruleForm.fruitConfig;
+  const index = message.indexOf(item)
+  if (index !== -1) {
+    let coordinate = message[index].coordinate;
+    let s = new WKT().readFeature(coordinate);
+
+    let s1 = new WKT().writeFeature(s, {
+      dataProjection: 'EPSG:3857',//目标坐标系
+      featureProjection: 'EPSG:4326'  //当前坐标系
+    });
+    document.getElementById('points').innerHTML = s.getGeometry().getCoordinates()
+    document.getElementById('wkt').innerHTML = s1;
+
   }
 }
 
@@ -93,7 +182,6 @@ const checkWkt = (event) => {
     subHid.value = false
   } catch (e) {
     errMsg.value = '请输入正确的wkt格式';
-    // console.log(errMsg.value+'-===')
   }
 
 
@@ -101,7 +189,6 @@ const checkWkt = (event) => {
 
 const submitForm = () => { // 点击确定按钮，输出行内数据
   let fruitConfig = state.ruleForm.fruitConfig;
-  // console.log(fruitConfig);
   // console.log("线名：" + fruitConfig[0].linename);
   // console.log("wkt坐标：" + fruitConfig[0].coordinate);
   let featus = [];
@@ -334,77 +421,3 @@ function removeLastPoint() {
 </style>
 
 
-<template>
-  <div class="home">
-    <el-row>
-      <el-col :span="15">
-        <!--        <div id="map" ref="map" ></div>-->
-        <div id="map" class="map__x"></div>
-      </el-col>
-      <el-col :span="9" class="attribute">
-        <el-row>
-          <div>
-            <button @click="drawPoint">画点</button>
-            <button @click="drawLine">画线</button>
-            <button @click="drawPolygon">画面</button>
-            <button @click="drawCircle">画圆</button>
-            <button @click="removeLastPoint">撤回</button>
-            <button @click="clearDraw">清空</button>
-            <button @click="exitDraw">退出</button>
-            <!--            <button @click="tes">测试</button>-->
-          </div>
-        </el-row>
-        <el-row type="flex" justify="center">
-          <!--          <el-col :span="2">坐标</el-col>-->
-          <el-col :span="24">
-            <el-text class="mx-1" type="danger">
-              坐标:
-              <div id='points'></div>
-              wkt:
-              <div id='wkt'></div>
-            </el-text>
-          </el-col>
-        </el-row>
-        <el-row>
-          <el-form :model="ruleForm" status-icon ref="formRef" label-width="50px">
-            <el-row :gutter="24">
-              <el-col :span="2">
-                <el-form-item>
-                  <el-button type="primary" @click="addFruitConfig">新增行</el-button>
-                </el-form-item>
-              </el-col>
-            </el-row>
-            <el-row :gutter="24" v-for="(item, index) in ruleForm.fruitConfig" :key="index">
-              <el-col :span="6">
-                <el-form-item label="线(id)" prop="'linename' + index">
-                  <el-input type="text" v-model="item.linename" autocomplete="off" maxlength="2">
-                  </el-input>
-                </el-form-item>
-              </el-col>
-              <el-col :span="14">
-                <el-form-item label="wkt" prop="'coordinate' + index" :error="errMsg">
-                  <el-input type="text" v-model="item.coordinate" autocomplete="off" minlength="5" @blur="checkWkt">
-                  </el-input>
-                  <!--                  <label style="color: red">{{ errMsg }}</label>-->
-                </el-form-item>
-              </el-col>
-              <el-col :span="2">
-                <el-button @click.prevent="removeFruitConfig(item)">删除行</el-button>
-              </el-col>
-            </el-row>
-            <el-row :gutter="20">
-              <el-col :span="4">
-                <el-form-item>
-                  <el-button :disabled="subHid" type="primary" @click="submitForm">确 定</el-button>
-                </el-form-item>
-              </el-col>
-              <el-col :span="10">
-                <el-button :style="{ display: hid}" type="primary" @click="clearLayer">清空</el-button>
-              </el-col>
-            </el-row>
-          </el-form>
-        </el-row>
-      </el-col>
-    </el-row>
-  </div>
-</template>
