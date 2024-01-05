@@ -1,4 +1,3 @@
-
 <template>
   <div class="home">
     <el-row>
@@ -31,7 +30,7 @@
           </el-col>
         </el-row>
         <el-row>
-          <el-form :model="ruleForm" status-icon ref="formRef" label-width="50px">
+          <el-form :model="ruleForm" status-icon ref="formRef" label-width="5px">
             <el-row :gutter="24">
               <el-col :span="2">
                 <el-form-item>
@@ -40,24 +39,31 @@
               </el-col>
             </el-row>
             <el-row :gutter="24" v-for="(item, index) in ruleForm.fruitConfig" :key="index">
-              <el-col :span="6">
-                <el-form-item label="线(id)" prop="'linename' + index">
+              <el-col :span="3">
+                <el-button type="success" @click.prevent="upSid(item)">{{ item.sid }}</el-button>
+                <!--                <el-form-item label="坐标系" prop="'sid' + index">-->
+                <!--                  <el-input type="text" v-model="item.sid" autocomplete="off" maxlength="2">-->
+                <!--                  </el-input>-->
+                <!--                </el-form-item>-->
+              </el-col>
+              <el-col :span=4>
+                <el-form-item label="id" prop="'linename' + index">
                   <el-input type="text" v-model="item.linename" autocomplete="off" maxlength="2">
                   </el-input>
                 </el-form-item>
               </el-col>
-              <el-col :span="10">
+              <el-col :span="12">
                 <el-form-item label="wkt" prop="'coordinate' + index" :error="errMsg">
                   <el-input type="text" v-model="item.coordinate" autocomplete="off" minlength="5" @blur="checkWkt">
                   </el-input>
                   <!--                  <label style="color: red">{{ errMsg }}</label>-->
                 </el-form-item>
               </el-col>
-              <el-col :span="4">
-                <el-button @click.prevent="removeFruitConfig(item)">删除行</el-button>
+              <el-col :span="3">
+                <el-button type="danger" @click.prevent="removeFruitConfig(item)">删除</el-button>
               </el-col>
-              <el-col :span="4">
-                <el-button @click.prevent="to57(item)">转墨卡托</el-button>
+              <el-col :span="2">
+                <el-button type="success" @click.prevent="to57(item)">转57</el-button>
               </el-col>
             </el-row>
             <el-row :gutter="20">
@@ -96,7 +102,9 @@ const state = reactive({
   ruleForm: {
     fruitConfig: [{
       linename: '',
-      coordinate: ''
+      coordinate: '',
+      sid: '84',
+      errMsg: ''
     }]
   },
 })
@@ -107,7 +115,9 @@ let layer = reactive(null)
 const addFruitConfig = () => { // 新增
   state.ruleForm.fruitConfig.push({
     linename: '',
-    coordinate: ''
+    coordinate: '',
+    sid: '84',
+    errMsg: ''
   })
   subHid.value = true
   hid.value = '';
@@ -142,6 +152,10 @@ const removeFruitConfig = (item) => {
   }
 }
 
+const upSid = (item) => {
+  console.log(item)
+  item.sid = item.sid === '57' ? '84' : '57'
+}
 const to57 = (item) => {
   let message = state.ruleForm.fruitConfig;
   const index = message.indexOf(item)
@@ -196,7 +210,19 @@ const submitForm = () => { // 点击确定按钮，输出行内数据
   for (const x of fruitConfig) {
     // console.log(x.coordinate.toString()+"---"+JSON.stringify(x.coordinate));
     // wkts.push({'linename': x.linename, 'coordinate': x.coordinate});
-    let readFeature = new WKT().readFeature(x.coordinate);
+    let readFeature;
+    console.log(x.sid + 'sid---')
+    if (x.sid === '57') {
+      readFeature = new WKT().readFeature(x.coordinate, {
+        dataProjection: 'EPSG:3857',
+        featureProjection: 'EPSG:4326'
+      });
+      // console.log(JSON.stringify(readFeature)+'----')
+    } else {
+      readFeature = new WKT().readFeature(x.coordinate)
+    }
+
+
     if (x.linename) {
       readFeature.setId(x.linename);
     } else {
@@ -384,6 +410,8 @@ function drawCircle() {
 }
 
 function clearDraw() {
+  document.getElementById('wkt').innerHTML = '';
+  document.getElementById('points').innerHTML = ''
   // 清空绘制
   source.clear();
 }
