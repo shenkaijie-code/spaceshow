@@ -50,13 +50,13 @@
               </el-col>
               <el-col :span=4>
                 <el-form-item label="id" prop="'linename' + index">
-                  <el-input type="text" v-model="item.linename" autocomplete="off" maxlength="2">
+                  <el-input type="text" v-model="item.linename" autocomplete="off" maxlength="2" >
                   </el-input>
                 </el-form-item>
               </el-col>
               <el-col :span="12">
                 <el-form-item label="wkt" prop="'coordinate' + index" :error="item.errMsg">
-                  <el-input type="text" v-model="item.coordinate" autocomplete="off" minlength="5" @blur="checkWkt(item)">
+                  <el-input type="text" v-model="item.coordinate" autocomplete="off" minlength="5" @blur="checkWkt(item)" clearable>
                   </el-input>
                   <!--                  <label style="color: red">{{ errMsg }}</label>-->
                 </el-form-item>
@@ -342,20 +342,6 @@ const checkWkt = (item) => {
     }
 
   }
-
-
-  // errMsg.value = ''
-  // let value = event.target.value;
-  // // console.log(value)
-  // try {
-  //   new WKT().readFeature(value)
-  //   // 校验通过后可以提交
-  //   subHid.value = false
-  // } catch (e) {
-  //   errMsg.value = '请输入正确的wkt格式';
-  // }
-
-
 }
 
 
