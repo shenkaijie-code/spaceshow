@@ -92,11 +92,61 @@ import VectorSource from "ol/source/Vector"; // 地图样式
 import VectorLayer from "ol/layer/Vector";
 import {GeoJSON, WKT} from "ol/format";
 import {XYZ} from "ol/source";
-import {Draw} from "ol/interaction";
+import {Draw, Modify, Select} from "ol/interaction";
 import * as control from "ol/control";
 import {ScaleLine} from "ol/control";
 import * as coordinate from "ol/coordinate";
 import {Fill, Stroke, Style} from "ol/style";
+import {singleClick} from "ol/events/condition";
+import {Circle} from "ol/geom";
+import * as style from "ol/style";
+
+
+//选中修改几何图形 todo
+// function selectModify() {
+//   console.log("456")
+//   let that_ = this
+//   let select_f = new Select({
+//     multi: false //取消多选
+//   })
+//   map.addInteraction(select_f);
+//   let modify_f = new Modify({
+//     features: select_f.getFeatures()//将选中的要素添加修改功能
+//   })
+//   map.addInteraction(modify_f)
+//   select_f.on("select", function (evt) {
+//     console.log("123")
+//     // if(that_.value_draw !=="Polygon"){
+//     //   //点击空白清除,清除弹窗，清空表单内容
+//     //   if(evt.selected.length<=0) {
+//     //     that_.popup_ol1 = false
+//     //     popup_overlay.setPosition(undefined)
+//     //     if (that_.$refs['formp']!==undefined) {
+//     //       that_.$refs['formp'].resetFields();
+//     //     }
+//     //     return
+//     //   }
+//     //   //选中一个要素时
+//     //   if(evt.selected.length===1) {
+//     //     // console.log(evt.selected[0].getProperties())
+//     //     sketch=evt.selected[0]
+//     //     // 添加overlay的内容，及给表单赋值
+//     //     that_.addOverlay1()
+//     //   }
+//     // }
+//   })
+//   //监听要素修改时
+//   // modify_f.on("modifyend",function (evt) {
+//   //   let new_feature = evt.features.item(0)
+//   //   if(new_feature){
+//   //     sketch=new_feature
+//   //     // 添加overlay的内容，及给表单赋值
+//   //     that_.addOverlay1()
+//   //   }
+//   // })
+// }
+
+
 // 参数声明
 const formRef = ref(null);
 const state = reactive({
@@ -315,12 +365,11 @@ function addWkt() {
 }
 
 let source = new VectorSource()
+let darmLayer = new VectorLayer({
+  source: source,
+});
 let layers = [
   //图层
-  // new Tile({   // 使用瓦片渲染方法
-  //   // 空白底图,生产环境不可使用
-  //   source: new OSM(),
-  // }),
   new Tile({
     source: new XYZ({url: 'http://t4.tianditu.com/DataServer?T=vec_w&tk=049df85c66a8dedc9a2d3dda08793769&x={x}&y={y}&l={z}'}),
     // source: new OSM(),
@@ -328,21 +377,7 @@ let layers = [
   new TileLayer({
     source: new XYZ({url: 'http://t3.tianditu.com/DataServer?T=cva_w&x={x}&y={y}&l={z}&tk=049df85c66a8dedc9a2d3dda08793769'}),
   }),
-  new VectorLayer({
-    source: new VectorSource({
-      features: features
-    }),
-    // style: new Style(
-    //     {
-    //       stroke: new Stroke({
-    //         color: 'red'
-    //       })
-    //     }
-    // )
-  }),
-  new VectorLayer({
-    source: source,
-  })
+  darmLayer
 ];
 
 
@@ -370,6 +405,71 @@ function initMap() {
     }),
     controls: control.defaults().extend([scaleline, mousePositionControl])
   })
+  // selectModify()
+
+
+  // 选中样式
+  let selectedStyle = new Style({
+    image: new style.Circle({
+      radius: 5,
+      stroke: new Stroke({
+        width: 2,
+        color: 'blue'
+      }),
+      fill: new Fill({
+        color: 'red'
+      })
+    }),
+    stroke: new Stroke({
+      width: 4,
+      color: 'red'
+    }),
+    fill: new Fill({
+      color: 'red'
+    })
+  });
+
+  // 创建点选工具
+  const interaction = new Select({
+    multi:false,
+    condition: singleClick,
+    style: selectedStyle,
+    // 这里默认所有图层,也可指定
+    // layers: [ darmLayer ]
+  });
+
+  // 监听select事件
+  interaction.on('select', function (e) {
+    if (e.selected.length > 0) {
+      let feature = e.selected[0];
+
+      let coordinate = feature.getGeometry();
+      let wktStr = new WKT().writeFeature(feature);
+      document.getElementById('wkt').innerHTML = wktStr;
+      document.getElementById('points').innerHTML = coordinate
+      // document.getElementById('msg').innerText = '被选中的要素：' + name;
+    }
+  });
+  //
+  // // 添加单选工具
+  map.addInteraction(interaction);
+
+
+
+
+
+  // 地图点击事件
+  // map.on('singleclick', function (e) {
+  //   let pixel = map.getEventPixel(e.originalEvent);
+  //   let currentFeature = map.forEachFeatureAtPixel(pixel, function (feature, layer) {
+  //     return feature;
+  //   });
+  //   if (currentFeature) {
+  //     currentFeature.setStyle(selectedStyle);
+  //   }
+  // });
+
+
   return map
 }
 
@@ -454,9 +554,11 @@ function exitDraw() {
   if (draw) {
     // 移除交互
     map.removeInteraction(draw);
-    source.clear();
-    draw = null;
+    // source.clear();
+    // draw = null;
   }
+  // document.getElementById('wkt').innerHTML = '';
+  // document.getElementById('points').innerHTML = ''
 }
 
 // 撤回操作
