@@ -15,6 +15,7 @@
             <button @click="removeLastPoint">撤回</button>
             <button @click="clearDraw">清空</button>
             <button @click="exitDraw">退出</button>
+            <button @click="exitDraw">点选</button>
             <!--            <button @click="tes">测试</button>-->
           </div>
         </el-row>
@@ -465,13 +466,29 @@ function initMap() {
 
   // 监听select事件
   interaction.on('select', function (e) {
+    function readFeatureToDocm(feature) {
+      let geometry = feature.getGeometry();
+      let type = geometry.getType()
+      // console.log(type)
+      let a
+      if (type === 'Circle') {
+        a = '半径:' + geometry.getRadius() + '圆心:' + geometry.getCenter()
+        // console.log(geometry.getRadius() + '===' + geometry.getCenter());
+        document.getElementById('wkt').innerHTML = a;
+      } else {
+        a = JSON.stringify(geometry.getCoordinates())
+        document.getElementById('wkt').innerHTML = new WKT().writeFeature(feature, {
+          dataProjection: 'EPSG:4326',//目标坐标系
+          featureProjection: 'EPSG:4326'  //当前坐标系
+        });
+      }
+      document.getElementById('points').innerHTML = a
+    }
+
     if (e.selected.length > 0) {
       let feature = e.selected[0];
+      readFeatureToDocm(feature);
 
-      let coordinate = feature.getGeometry();
-      let wktStr = new WKT().writeFeature(feature);
-      document.getElementById('wkt').innerHTML = wktStr;
-      document.getElementById('points').innerHTML = coordinate
       // document.getElementById('msg').innerText = '被选中的要素：' + name;
     }
   });
