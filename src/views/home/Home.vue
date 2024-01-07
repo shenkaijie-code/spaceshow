@@ -84,7 +84,7 @@
 </template>
 <script setup>
 import {onMounted, reactive, ref, toRefs} from 'vue' // vue相关方法
-import {Map, View} from 'ol' // 地图实例方法、视图方法
+import {Feature, Map, View} from 'ol' // 地图实例方法、视图方法
 import Tile from 'ol/layer/Tile' // 瓦片渲染方法
 import TileLayer from 'ol/layer/Tile'
 import 'ol/ol.css'
@@ -96,6 +96,7 @@ import {Draw} from "ol/interaction";
 import * as control from "ol/control";
 import {ScaleLine} from "ol/control";
 import * as coordinate from "ol/coordinate";
+import {Fill, Stroke, Style} from "ol/style";
 // 参数声明
 const formRef = ref(null);
 const state = reactive({
@@ -111,7 +112,7 @@ const state = reactive({
 
 let features = [];
 let wkts = []
-let layer = reactive(null)
+
 const addFruitConfig = () => { // 新增
   state.ruleForm.fruitConfig.push({
     linename: '',
@@ -125,6 +126,73 @@ const addFruitConfig = () => { // 新增
 
 let hid = ref()
 let subHid = ref(true)
+
+let layer = ref(null)
+
+const submitForm = () => { // 点击确定按钮，输出行内数据
+  let fruitConfig = state.ruleForm.fruitConfig;
+  // console.log("线名：" + fruitConfig[0].linename);
+  // console.log("wkt坐标：" + fruitConfig[0].coordinate);
+  let featus = [];
+  let i = 0
+  for (const x of fruitConfig) {
+    // console.log(x.coordinate.toString()+"---"+JSON.stringify(x.coordinate));
+    // wkts.push({'linename': x.linename, 'coordinate': x.coordinate});
+    let readFeature;
+    // console.log(x.sid + 'sid---')
+    if (x.sid === '57') {
+      readFeature = new WKT().readFeature(x.coordinate, {
+        dataProjection: 'EPSG:3857',
+        featureProjection: 'EPSG:4326'
+      });
+      // console.log(JSON.stringify(readFeature)+'----')
+    } else {
+      readFeature = new WKT().readFeature(x.coordinate)
+    }
+    //
+    // readFeature.setStyle(() => {
+    //   return new Style({
+    //     // 边界样式
+    //     stroke: new Stroke(
+    //         {
+    //           color: '#8b3c75',
+    //           width: 2
+    //         }
+    //     ),
+    //     fill: new Fill({ color: [178, 99, 37, 0.5] })
+    //   })
+    // })
+
+
+    if (x.linename) {
+      readFeature.setId(x.linename);
+    } else {
+      readFeature.setId('w' + i);
+      i++
+    }
+    featus.push(readFeature)
+  }
+  // Feature.changed()
+  if (layer) {
+    map.removeLayer(layer);
+  }
+  // addWkt();
+  layer = new VectorLayer({
+    source: new VectorSource({
+      features: featus
+    }),
+    // style: new Style({
+    //   stroke: new Stroke({
+    //     color: "#cc2b74",
+    //     lineDash: [7, 10],
+    //     width: 2
+    //   })
+    // })
+  });
+  map.addLayer(layer)
+
+}
+
 const removeFruitConfig = (item) => {
   let message = state.ruleForm.fruitConfig;
   const index = message.indexOf(item)
@@ -153,7 +221,7 @@ const removeFruitConfig = (item) => {
 }
 
 const upSid = (item) => {
-  console.log(item)
+  // console.log(item)
   item.sid = item.sid === '57' ? '84' : '57'
 }
 const to57 = (item) => {
@@ -189,7 +257,7 @@ let errMsg = ref('')
 const checkWkt = (event) => {
   errMsg.value = ''
   let value = event.target.value;
-  console.log(value)
+  // console.log(value)
   try {
     new WKT().readFeature(value)
     // 校验通过后可以提交
@@ -198,48 +266,6 @@ const checkWkt = (event) => {
     errMsg.value = '请输入正确的wkt格式';
   }
 
-
-}
-
-const submitForm = () => { // 点击确定按钮，输出行内数据
-  let fruitConfig = state.ruleForm.fruitConfig;
-  // console.log("线名：" + fruitConfig[0].linename);
-  // console.log("wkt坐标：" + fruitConfig[0].coordinate);
-  let featus = [];
-  let i = 0
-  for (const x of fruitConfig) {
-    // console.log(x.coordinate.toString()+"---"+JSON.stringify(x.coordinate));
-    // wkts.push({'linename': x.linename, 'coordinate': x.coordinate});
-    let readFeature;
-    console.log(x.sid + 'sid---')
-    if (x.sid === '57') {
-      readFeature = new WKT().readFeature(x.coordinate, {
-        dataProjection: 'EPSG:3857',
-        featureProjection: 'EPSG:4326'
-      });
-      // console.log(JSON.stringify(readFeature)+'----')
-    } else {
-      readFeature = new WKT().readFeature(x.coordinate)
-    }
-
-
-    if (x.linename) {
-      readFeature.setId(x.linename);
-    } else {
-      readFeature.setId('w' + i);
-      i++
-    }
-    featus.push(readFeature)
-  }
-
-  map.removeLayer(layer)
-  // addWkt();
-  layer = new VectorLayer({
-    source: new VectorSource({
-      features: featus
-    })
-  });
-  map.addLayer(layer)
 
 }
 
@@ -305,10 +331,17 @@ let layers = [
   new VectorLayer({
     source: new VectorSource({
       features: features
-    })
+    }),
+    // style: new Style(
+    //     {
+    //       stroke: new Stroke({
+    //         color: 'red'
+    //       })
+    //     }
+    // )
   }),
   new VectorLayer({
-    source: source
+    source: source,
   })
 ];
 
@@ -346,15 +379,15 @@ onMounted(() => {
   initMap()
 })
 
+
 //保存这个控件状态,保证不会改变成别的对象
 let draw = ref(null)
-
 
 function addInteraction(type) {
   // 添加交互绘制控件
   draw = new Draw({
     source: source,
-    type: type
+    type: type,
   });
   map.addInteraction(draw);
   // 监听点
