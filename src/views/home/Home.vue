@@ -55,8 +55,8 @@
                 </el-form-item>
               </el-col>
               <el-col :span="12">
-                <el-form-item label="wkt" prop="'coordinate' + index" :error="errMsg">
-                  <el-input type="text" v-model="item.coordinate" autocomplete="off" minlength="5" @blur="checkWkt">
+                <el-form-item label="wkt" prop="'coordinate' + index" :error="item.errMsg">
+                  <el-input type="text" v-model="item.coordinate" autocomplete="off" minlength="5" @blur="checkWkt(item)">
                   </el-input>
                   <!--                  <label style="color: red">{{ errMsg }}</label>-->
                 </el-form-item>
@@ -326,18 +326,34 @@ const clearLayer = () => { // 删除
 
 }
 
-let errMsg = ref('')
-const checkWkt = (event) => {
-  errMsg.value = ''
-  let value = event.target.value;
-  // console.log(value)
-  try {
-    new WKT().readFeature(value)
-    // 校验通过后可以提交
-    subHid.value = false
-  } catch (e) {
-    errMsg.value = '请输入正确的wkt格式';
+const checkWkt = (item) => {
+  let message = state.ruleForm.fruitConfig;
+  const index = message.indexOf(item)
+  if (index !== -1) {
+    let x = message[index];
+    let value = x.coordinate;
+    item.errMsg=''
+    try {
+      new WKT().readFeature(value)
+      // 校验通过后可以提交
+      subHid.value = false
+    } catch (e) {
+      item.errMsg='请输入正确的wkt格式'
+    }
+
   }
+
+
+  // errMsg.value = ''
+  // let value = event.target.value;
+  // // console.log(value)
+  // try {
+  //   new WKT().readFeature(value)
+  //   // 校验通过后可以提交
+  //   subHid.value = false
+  // } catch (e) {
+  //   errMsg.value = '请输入正确的wkt格式';
+  // }
 
 
 }
