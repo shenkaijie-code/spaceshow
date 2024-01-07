@@ -40,7 +40,9 @@
             </el-row>
             <el-row :gutter="24" v-for="(item, index) in ruleForm.fruitConfig" :key="index">
               <el-col :span="3">
-                <el-button type="success" @click.prevent="upSid(item)">{{ item.sid }}</el-button>
+                <el-button :style="'background-color:'+item.col+';'" type="success" @click.prevent="upSid(item)">
+                  {{ item.sid }}
+                </el-button>
                 <!--                <el-form-item label="坐标系" prop="'sid' + index">-->
                 <!--                  <el-input type="text" v-model="item.sid" autocomplete="off" maxlength="2">-->
                 <!--                  </el-input>-->
@@ -84,7 +86,7 @@
 </template>
 <script setup>
 import {onMounted, reactive, ref, toRefs} from 'vue' // vue相关方法
-import {Feature, Map, View} from 'ol' // 地图实例方法、视图方法
+import {Map, View} from 'ol' // 地图实例方法、视图方法
 import Tile from 'ol/layer/Tile' // 瓦片渲染方法
 import TileLayer from 'ol/layer/Tile'
 import 'ol/ol.css'
@@ -92,14 +94,13 @@ import VectorSource from "ol/source/Vector"; // 地图样式
 import VectorLayer from "ol/layer/Vector";
 import {GeoJSON, WKT} from "ol/format";
 import {XYZ} from "ol/source";
-import {Draw, Modify, Select} from "ol/interaction";
+import {Draw, Select} from "ol/interaction";
 import * as control from "ol/control";
 import {ScaleLine} from "ol/control";
 import * as coordinate from "ol/coordinate";
+import * as style from "ol/style";
 import {Fill, Stroke, Style} from "ol/style";
 import {singleClick} from "ol/events/condition";
-import {Circle} from "ol/geom";
-import * as style from "ol/style";
 
 
 //选中修改几何图形 todo
@@ -155,7 +156,8 @@ const state = reactive({
       linename: '',
       coordinate: '',
       sid: '84',
-      errMsg: ''
+      errMsg: '',
+      col: getColor()
     }]
   },
 })
@@ -164,12 +166,15 @@ let features = [];
 let wkts = []
 
 const addFruitConfig = () => { // 新增
+
   state.ruleForm.fruitConfig.push({
     linename: '',
     coordinate: '',
     sid: '84',
-    errMsg: ''
+    errMsg: '',
+    col: getColor()
   })
+
   subHid.value = true
   hid.value = '';
 }
@@ -200,18 +205,29 @@ const submitForm = () => { // 点击确定按钮，输出行内数据
       readFeature = new WKT().readFeature(x.coordinate)
     }
     //
-    // readFeature.setStyle(() => {
-    //   return new Style({
-    //     // 边界样式
-    //     stroke: new Stroke(
-    //         {
-    //           color: '#8b3c75',
-    //           width: 2
-    //         }
-    //     ),
-    //     fill: new Fill({ color: [178, 99, 37, 0.5] })
-    //   })
-    // })
+    let color = x.col
+
+    readFeature.setStyle(() => {
+      return new Style({
+        image: new style.Circle({
+          radius: 5,
+          stroke: new Stroke({
+            width: 2,
+            color: color
+          }),
+          fill: new Fill({
+            color: color
+          })
+        }),
+        stroke: new Stroke({
+          width: 4,
+          color: color
+        }),
+        fill: new Fill({
+          color: color
+        })
+      })
+    })
 
 
     if (x.linename) {
@@ -223,25 +239,31 @@ const submitForm = () => { // 点击确定按钮，输出行内数据
     featus.push(readFeature)
   }
   // Feature.changed()
-  if (layer) {
-    map.removeLayer(layer);
-  }
+  map.removeLayer(layer);
   // addWkt();
   layer = new VectorLayer({
     source: new VectorSource({
       features: featus
-    }),
-    // style: new Style({
-    //   stroke: new Stroke({
-    //     color: "#cc2b74",
-    //     lineDash: [7, 10],
-    //     width: 2
-    //   })
-    // })
+    })
   });
+  layer.value = true
   map.addLayer(layer)
 
 }
+
+function getColor() {
+  // let color="#";
+  // for(let i=0;i<6;i++){
+  //   color += (Math.random()*16 | 0).toString(16);
+  // }
+  // return color;
+
+  return "#" + (function (color) {
+    return new Array(7 - color.length).join("0") + color;
+  })((Math.random() * 0x1000000 | 0).toString(16));
+
+}
+
 
 const removeFruitConfig = (item) => {
   let message = state.ruleForm.fruitConfig;
@@ -249,7 +271,8 @@ const removeFruitConfig = (item) => {
   if (index !== -1) {
     // wkts = wkts.filter(x => x.linename !== message[index].linename)
     let id = message[index].linename;
-    if (layer) {
+    console.log(JSON.stringify(layer.value) + '-----0000');
+    if (layer.value) {
       if (id) {
         // 有值时删除
         let f = layer.getSource().getFeatureById(id);
@@ -431,7 +454,7 @@ function initMap() {
 
   // 创建点选工具
   const interaction = new Select({
-    multi:false,
+    multi: false,
     condition: singleClick,
     style: selectedStyle,
     // 这里默认所有图层,也可指定
@@ -453,9 +476,6 @@ function initMap() {
   //
   // // 添加单选工具
   map.addInteraction(interaction);
-
-
-
 
 
   // 地图点击事件
@@ -555,7 +575,7 @@ function exitDraw() {
     // 移除交互
     map.removeInteraction(draw);
     // source.clear();
-    // draw = null;
+    draw = null;
   }
   // document.getElementById('wkt').innerHTML = '';
   // document.getElementById('points').innerHTML = ''
