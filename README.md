@@ -32,14 +32,14 @@ npm run build
 - 布局样式 
 - 功能
   - 显示
-    - 多个wkt显示
-    - geojson多面显示
-    - 多geojson显示
+    - [x] 多个wkt显示
+    - [x] 圆坐标显示
+    - [x] 不同颜色显示
     - 底图切换
-    - 读取wkt,json文件
     - 多平台底图支持
-    - 圆坐标显示
-    - 不同颜色显示
+    - 多geojson显示
+    - geojson多面显示
+    - 读取wkt,json文件
   - 数据处理
     - 度转米
     - 度转孤

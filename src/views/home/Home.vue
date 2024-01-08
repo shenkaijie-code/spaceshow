@@ -51,13 +51,14 @@
               </el-col>
               <el-col :span=4>
                 <el-form-item label="id" prop="'linename' + index">
-                  <el-input type="text" v-model="item.linename" autocomplete="off" maxlength="2" >
+                  <el-input type="text" v-model="item.linename" autocomplete="off" maxlength="2">
                   </el-input>
                 </el-form-item>
               </el-col>
               <el-col :span="12">
                 <el-form-item label="wkt" prop="'coordinate' + index" :error="item.errMsg">
-                  <el-input type="text" v-model="item.coordinate" autocomplete="off" minlength="5" @blur="checkWkt(item)" clearable>
+                  <el-input type="text" v-model="item.coordinate" autocomplete="off" minlength="5"
+                            @blur="checkWkt(item)" clearable>
                   </el-input>
                   <!--                  <label style="color: red">{{ errMsg }}</label>-->
                 </el-form-item>
@@ -102,6 +103,7 @@ import * as coordinate from "ol/coordinate";
 import * as style from "ol/style";
 import {Fill, Stroke, Style} from "ol/style";
 import {singleClick} from "ol/events/condition";
+import {getLength} from "ol/sphere";
 
 
 //选中修改几何图形 todo
@@ -333,13 +335,13 @@ const checkWkt = (item) => {
   if (index !== -1) {
     let x = message[index];
     let value = x.coordinate;
-    item.errMsg=''
+    item.errMsg = ''
     try {
       new WKT().readFeature(value)
       // 校验通过后可以提交
       subHid.value = false
     } catch (e) {
-      item.errMsg='请输入正确的wkt格式'
+      item.errMsg = '请输入正确的wkt格式'
     }
 
   }
@@ -522,6 +524,19 @@ onMounted(() => {
 //保存这个控件状态,保证不会改变成别的对象
 let draw = ref(null)
 
+function formatLength(line) {
+  var length = getLength(line);
+  var output;
+  if (length > 1000) {
+    output = (Math.round(length / 1000 * 100) / 100) +
+        ' km';
+  } else {
+    output = (Math.round(length * 100) / 100) +
+        ' m';
+  }
+  return output;
+}
+
 function addInteraction(type) {
   // 添加交互绘制控件
   draw = new Draw({
@@ -529,6 +544,22 @@ function addInteraction(type) {
     type: type,
   });
   map.addInteraction(draw);
+
+  // 开始画,求距离
+  // draw.on('drawstart', function (evt) {
+  //   let sketch = evt.feature;
+  //   var tooltipCoord = evt.coordinate;
+  //    sketch.getGeometry().on('change', function (evt) {
+  //     var geom = evt.target;
+  //     var output = formatLength(geom);
+  //      console.log(output);
+  //      // tooltipCoord = geom.getLastCoordinate();
+  //     // measureTooltipElement.innerHTML = output;
+  //     // measureTooltip.setPosition(tooltipCoord);
+  //   });
+  // });
+
+
   // 监听点
   draw.on('drawend', (event) => {
     //  结束时的线
