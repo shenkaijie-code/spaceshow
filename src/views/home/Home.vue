@@ -55,7 +55,7 @@
                   </el-input>
                 </el-form-item>
               </el-col>
-              <el-col :span="12">
+              <el-col :span="9">
                 <el-form-item label="wkt" prop="'coordinate' + index" :error="item.errMsg">
                   <el-input type="text" v-model="item.coordinate" autocomplete="off" minlength="5"
                             @blur="checkWkt(item)" clearable>
@@ -66,8 +66,11 @@
               <el-col :span="3">
                 <el-button type="danger" @click.prevent="removeFruitConfig(item)">删除</el-button>
               </el-col>
-              <el-col :span="2">
+              <el-col :span="3">
                 <el-button type="success" @click.prevent="to57(item)">转57</el-button>
+              </el-col>
+              <el-col :span="2">
+                <el-button type="success" @click.prevent="to84(item)">转84</el-button>
               </el-col>
             </el-row>
             <el-row :gutter="20">
@@ -316,7 +319,22 @@ const to57 = (item) => {
 
   }
 }
+const to84 = (item) => {
+  let message = state.ruleForm.fruitConfig;
+  const index = message.indexOf(item)
+  if (index !== -1) {
+    let coordinate = message[index].coordinate;
+    let s = new WKT().readFeature(coordinate);
 
+    let s1 = new WKT().writeFeature(s, {
+      dataProjection: 'EPSG:4326',//目标坐标系
+      featureProjection: 'EPSG:3857'  //当前坐标系
+    });
+    document.getElementById('points').innerHTML = s.getGeometry().getCoordinates()
+    document.getElementById('wkt').innerHTML = s1;
+
+  }
+}
 
 const clearLayer = () => { // 删除
   let features1 = layer.getSource().getFeatures();
@@ -396,6 +414,9 @@ let source = new VectorSource()
 let darmLayer = new VectorLayer({
   source: source,
 });
+let url =[]
+
+
 let layers = [
   //图层
   new Tile({
